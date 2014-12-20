@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+    <head>
+        <meta charset="utf-8"/>
+        <title>RSS Factory</title>
+        <meta name="description" content="微博，微信公众号，知乎日报 RSS。"/>
+        <meta name="robots" content="index, follow"/>
+        <link rel="stylesheet" href="http://libs.baidu.com/bootstrap/3.0.3/css/bootstrap.min.css"/>
+        <link rel="stylesheet" href="http://www.slimframework.com/_themes/slim/css/all.css"/>
+    </head>
+    <body>
+        <div class="site-wrapper">
+            <header class="site-header">
+                <div class="site-title"><a href="/">RSS Factory</a></div>
+            </header>
+            <div class="content">
+
+
+<p class="lead">
+    RSS Factory 是一个用来生成微博，微信公众号，知乎日报 <strong>RRS</strong> 的Web APP。
+</p>
+
+<div class="input-group">
+    <input type="text" class="form-control" placeholder="微博uid 或 微信公众号openid">
+    <span class="input-group-btn">
+        <button class="btn btn-default" type="button">Go</button>
+    </span>
+</div>
+<br />
+
+<div id='board' class="gittip alert alert-info hide" style="padding: 20px;">
+</div>
+
+<div class="gittip alert alert-info" style="padding: 20px;">
+    <p>
+        知乎日报: <a href='https://diy-devz.rhcloud.com/zhihu' target='_blank'>http://diy-devz.rhcloud.com/zhihu</a>
+    </p>
+</div>
+
+<p>
+    <a href='http://blog.sina.com.cn/s/blog_4a0f0a740100y5gw.html' target='_blank'>获取新浪微博uid方法</a>
+    <br />
+    获取微信公众号openid方法:
+    <ul>
+        <li><a href='http://weixin.sogou.com/' target='_blank'>搜狗</a>搜索喜欢的微信公众号</li>
+        <li>通过URL获取openid,如:<br/>http://weixin.sogou.com/gzh?openid=<strong>oIWsFt86NKeSGd_BQKp1GcDkYpv0</strong></li>
+    </ul>
+</ul>
+</p>
+
+
+
+            </div>
+            <footer class="site-footer">
+                <p class="credits">
+                    Released under the <a href="/license">MIT Public License</a>.<br/>
+                    &copy; 2014, <a href="https://github.com/zhu327/rss" target="_blank">Timmy Chu</a>.
+                </p>
+                <div class="powered-by">
+                    Powered by <a href="http://bozpy.sinaapp.com/" target="_blank">Timmy</a>
+                </div>
+            </footer>
+            <script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+            <script src="http://libs.baidu.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+            <script>
+            function isDigit(s) {
+                var patrn=/^[0-9]{1,20}$/;
+                if (!patrn.exec(s)) return false;
+                return true;
+            };
+
+            $(function() {
+                $('.input-group').on('click', 'button', function() {
+                    var input = $('input').val();
+                    if (input.length == 10 && isDigit(input)) {
+                        var a = $("<a target='_blank' href='https://diy-devz.rhcloud.com/weibo?uid="+input+"'>https://diy-devz.rhcloud.com/weibo?uid="+input+"</a>");
+                        var p = $("<p>微博:<br/></p>");
+                        p.append(a);
+                    } else if (input.length == 28) {
+                        var a = $("<a target='_blank' href='https://diy-devz.rhcloud.com/weixin?openid="+input+"'>https://diy-devz.rhcloud.com/weixin?openid="+input+"</a>");
+                        var p = $("<p>微信公众号:<br/></p>");
+                        p.append(a);
+                    } else {
+                        var p = $('<p>请输入正确的微博uid或微信公众号openid.</p>');
+                    };
+                    var board = $('#board');
+                    board.append(p);
+                    board.removeClass('hide');
+                });
+            })
+            </script>
+        </div>
+    </body>
+</html>

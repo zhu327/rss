@@ -6,14 +6,14 @@ from urls import urls
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
-        self.write("Hello, world")
+        self.render('index.html')
+
+urls.append((r"/", MainHandler))
 
 application = tornado.web.Application(
-    handlers=[
-        (r"/", MainHandler),
-    ] + urls,
+    handlers=urls,
     template_path=os.path.join(os.path.dirname(__file__), "templates"),
-    debug=True)
+)
 
 if __name__ == "__main__":
     ip = os.environ['OPENSHIFT_DIY_IP']
