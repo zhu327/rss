@@ -1,0 +1,5 @@
+#!/bin/bash
+# The logic to start up your application should be put in this
+# script. The application will work only if it binds to
+# $OPENSHIFT_DIY_IP:8080
+nohup $OPENSHIFT_DATA_DIR/bin/python $OPENSHIFT_REPO_DIR/diy/start.py > $OPENSHIFT_DIY_LOG_DIR/tornado_server.log 2>&1 &

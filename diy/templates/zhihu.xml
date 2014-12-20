@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <title><![CDATA[知乎日报]]></title>
+    <subtitle><![CDATA[在中国,资讯类移动应用的人均阅读时长是 5 分钟,而在知乎日报,这个数字是 21。以独有的方式为你提供最高质、最深度、最有收获的阅读体验。]]></subtitle>
+    <link href="http://daily.zhihu.com/" />
+    <id>http://daily.zhihu.com/</id>
+    <author>
+        <name><![CDATA[知乎日报]]></name>
+    </author>
+    <generator uri="http://daily.zhihu.com/">知乎日报</generator>
+    {% for entry in entrys %}
+    <entry>
+        <title type="html"><![CDATA[{{ entry['title'] }}]]></title>
+        <link href="{{entry['url']}}"/>
+        <id>{{entry['id']}}</id>
+        <content type="html"><![CDATA[{% raw entry['body'] %}]]></content>
+    </entry>
+    {% end %}
+</feed>
