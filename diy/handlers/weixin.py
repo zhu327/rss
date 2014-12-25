@@ -51,9 +51,10 @@ class WeixinHandler(tornado.web.RequestHandler):
                             x.extract()
                         entrys[i]['content'] = content
                     else:
+                        del entrys[i]
                         continue
                 self.set_header("Content-Type", "application/xml; charset=UTF-8")
-                self.render("weixin.xml", url=url, title=title, entrys=entrys)
+                self.render("weixin.xml", url=url.replace('gzhjs', 'gzh'), title=title, entrys=entrys)
             else:
                 raise tornado.web.HTTPError(response.code)
         else:

@@ -9,8 +9,7 @@ import json
 ZHIHU_URL = 'http://news.at.zhihu.com/api/1.2/news/latest'
 
 headers = {
-    'User-Agent':"Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Win64; x64; Trident/5.0)",
-    'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'User-Agent':"ZhihuNotMoe/2333",
 }
 
 class ZhihuHandler(tornado.web.RequestHandler):
@@ -27,7 +26,9 @@ class ZhihuHandler(tornado.web.RequestHandler):
                 if response.code == 200:
                     entry = json.loads(response.body.decode('utf-8'))
                     entrys[i]['body'] = entry['body']
+                    entrys[i]['url'] = entry['share_url']
                 else:
+                    del entrys[i]
                     continue
             self.set_header("Content-Type", "application/xml; charset=UTF-8")
             self.render("zhihu.xml", entrys=entrys)

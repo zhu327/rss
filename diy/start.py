@@ -13,6 +13,7 @@ urls.append((r"/", MainHandler))
 application = tornado.web.Application(
     handlers=urls,
     template_path=os.path.join(os.path.dirname(__file__), "templates"),
+    static_path=os.path.join(os.path.dirname(__file__), "static"),
 )
 
 if __name__ == "__main__":
