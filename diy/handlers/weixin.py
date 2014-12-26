@@ -29,7 +29,7 @@ class WeixinHandler(tornado.web.RequestHandler):
             if response.code == 200:
                 entrys = []
                 content = response.body.decode('utf-8')
-                content = content[content.index('{'):content.index('}')+1]
+                content = content[content.index('{'):content.rfind('}')+1]
                 content = json.loads(content)
                 title = None
                 for e in content['items']:
@@ -45,10 +45,7 @@ class WeixinHandler(tornado.web.RequestHandler):
                 for i, response in enumerate(responses):
                     if response.code == 200:
                         s = BeautifulSoup(response.body.decode('utf-8'))
-                        content = s.find('div', attrs={'id':'page-content'})
-                        script = content.findAll('script')
-                        for x in script:
-                            x.extract()
+                        content = s.find('div', id='js_content')
                         entrys[i]['content'] = content
                     else:
                         del entrys[i]
