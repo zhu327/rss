@@ -46,6 +46,8 @@ class WeixinHandler(tornado.web.RequestHandler):
                     if response.code == 200:
                         s = BeautifulSoup(response.body.decode('utf-8'))
                         content = s.find('div', id='js_content')
+                        for img in content.findAll('img'):
+                            img['src'] = img['data-src']
                         entrys[i]['content'] = content
                     else:
                         del entrys[i]
