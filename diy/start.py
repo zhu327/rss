@@ -2,6 +2,7 @@ import os
 import tornado.ioloop
 import tornado.web
 
+from jinja2_tornado import JinjaLoader
 from urls import urls
 
 class MainHandler(tornado.web.RequestHandler):
