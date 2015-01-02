@@ -13,7 +13,9 @@
         <title type="html"><![CDATA[{{ entry['title'] }}]]></title>
         <link href="{{entry['url']}}"/>
         <id>{{entry['id']}}</id>
-        <content type="html"><![CDATA[{% raw entry['body'] %}]]></content>
+        {% autoescape false %}
+        <content type="html"><![CDATA[ {{entry['body']}} ]]></content>
+        {% endautoescape %}
     </entry>
-    {% end %}
+    {% endfor %}
 </feed>

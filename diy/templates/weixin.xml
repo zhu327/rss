@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <title><![CDATA[{{title}}]]></title>
     <subtitle><![CDATA[{{title}}]]></subtitle>
-    <link href="{{ url }}"/>
+    <link href="{{ url }}" />
     <updated>{{ entrys[0]['created'] }}</updated>
     <id>{{ url }}</id>
     <author>
@@ -12,11 +12,13 @@
     {% for entry in entrys %}
     <entry>
         <title type="html"><![CDATA[{{ entry['title'] }}]]></title>
-        <link href="{{entry['url']}}"/>
+        <link href="{{entry['url']}}" />
         <id>{{entry['url']}}</id>
         <published>{{ entry['created'] }}</published>
         <updated>{{ entry['created'] }}</updated>
-        <content type="html"><![CDATA[{% raw entry['content'] %}]]></content>
+        {% autoescape false %}
+        <content type="html"><![CDATA[{{ entry['content'] }}]]></content>
+        {% endautoescape %}
     </entry>
-    {% end %}
+    {% endfor %}
 </feed>

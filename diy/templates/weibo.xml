@@ -12,10 +12,12 @@
       <title><![CDATA[{{ status['title'] }}]]></title>
       <link>{{ status['url'] }}</link>
       <author>{{ user }}</author>
-      <description><![CDATA[{% raw status['content'] %}]]></description>
+      {% autoescape false %}
+      <description><![CDATA[{{status['content']}}]]></description>
+      {% endautoescape %}
       <pubDate>{{ status['created'] }}</pubDate>
       <guid>{{ status['url'] }}</guid>
     </item>
-    {% end %}
+    {% endfor %}
   </channel>
 </rss>

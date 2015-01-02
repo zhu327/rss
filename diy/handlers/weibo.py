@@ -4,8 +4,8 @@ import tornado.web
 import tornado.httpclient
 
 import urllib, datetime, re
+import lxml.html
 
-from bs4 import BeautifulSoup
 from public import LocalTimezone, getNow
 
 WEIBO_URL = 'http://service.weibo.com/widget/widget_blog.php?'
@@ -46,15 +46,17 @@ class WeiboHandler(tornado.web.RequestHandler):
 
     def on_response(self, response):
         if response.code == 200:
-            soup = BeautifulSoup(response.body.decode('utf-8'))
-            user = soup.find('div', attrs={'class':'userNm txt_b'}).text
+            root = lxml.html.fromstring(response.body.decode('utf-8'))
+            user = root.xpath("//div[@class='userNm txt_b']")[0].text
             statuses = []
-            for t in soup.findAll('div', attrs={'class':'wgtCell_con'}):
+            for t in root.xpath("//div[@class='wgtCell_con']"):
                 status = {}
-                status['content'] = t.find('p', attrs={'class':'wgtCell_txt'})
-                status['title'] = status['content'].text.split('\n')[0]
-                status['url'] = t.find('a', attrs={'class':'link_d'}).attrs['href']
-                status['created'] = rssdate(t.find('a', attrs={'class':'link_d'}).text)
+                content = t.xpath("p[@class='wgtCell_txt']")[0]
+                status['content'] = lxml.html.tostring(content, encoding='unicode')
+                status['title'] = content.text_content().split('\n')[0]
+                time = t.xpath(".//a[@class='link_d']")[0]
+                status['url'] = time.get('href')
+                status['created'] = rssdate(time.text)
                 statuses.append(status)
             self.set_header("Content-Type", "application/xml; charset=UTF-8")
             self.render("weibo.xml", uid=self.uid, user=user, statuses=statuses)

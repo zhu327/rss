@@ -4,9 +4,10 @@ import tornado.web
 import tornado.gen
 import tornado.httpclient
 
-import urllib, json, datetime
+import urllib, json, datetime, re
+import lxml.html
+
 from dateutil import tz
-from bs4 import BeautifulSoup
 from public import LocalTimezone
 
 WINXIN_URL = 'http://weixin.sogou.com/gzhjs?'
@@ -29,26 +30,38 @@ class WeixinHandler(tornado.web.RequestHandler):
             if response.code == 200:
                 entrys = []
                 content = response.body.decode('utf-8')
-                content = content[content.index('{'):content.rfind('}')+1]
+                content = content[content.find('{'):content.rfind('}')+1]
                 content = json.loads(content)
                 title = None
+                title_pattern = re.compile(ur'<title><!\[CDATA\[(.+?)\]\]></title>')
+                url_pattern = re.compile(ur'<url><!\[CDATA\[(.+?)\]\]></url>')
+                created_pattern = re.compile(ur'<lastModified>(\d+)</lastModified>')
                 for e in content['items']:
-                    soup = BeautifulSoup(e)
                     entry = {}
                     if not title:
-                        title = soup.find('sourcename').text
-                    entry['title'] = soup.find('title').text
-                    entry['url'] = soup.find('url').text
-                    entry['created'] = rssdate(float(soup.find('lastmodified').text))
+                        title = re.findall(ur'<sourcename><!\[CDATA\[(.+?)\]\]></sourcename>', e)[0]
+                    entry['title'] = title_pattern.findall(e)[0]
+                    entry['url'] = url_pattern.findall(e)[0]
+                    entry['created'] = rssdate(float(created_pattern.findall(e)[0]))
                     entrys.append(entry)
                 responses = yield [client.fetch(x['url']) for x in entrys]
                 for i, response in enumerate(responses):
                     if response.code == 200:
-                        s = BeautifulSoup(response.body.decode('utf-8'))
-                        content = s.find('div', id='js_content')
-                        for img in content.findAll('img'):
-                            img['src'] = img['data-src']
-                        entrys[i]['content'] = content
+                        root = lxml.html.fromstring(response.body.decode('utf-8'))
+                        cover = root.xpath('//div[@class="rich_media_thumb"]/script')
+                        coverimg = None
+                        if cover:
+                            pic = re.findall(r'var cover = "(http://.+)";', cover[0].text)
+                            if pic:
+                                coverimg = pic[0]
+                        content = root.xpath('//div[@id="js_content"]')[0]
+                        for img in content.xpath('.//img'):
+                            imgattr = img.attrib
+                            imgattr['src'] = imgattr['data-src']
+                        if coverimg:
+                            coverelement = lxml.etree.fromstring('<img src="%s" />' % coverimg)
+                            content.insert(0, coverelement)
+                        entrys[i]['content'] = lxml.html.tostring(content, encoding='unicode')
                     else:
                         del entrys[i]
                         continue

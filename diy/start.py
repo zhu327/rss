@@ -12,8 +12,9 @@ urls.append((r"/", MainHandler))
 
 application = tornado.web.Application(
     handlers=urls,
-    template_path=os.path.join(os.path.dirname(__file__), "templates"),
     static_path=os.path.join(os.path.dirname(__file__), "static"),
+    template_loader=JinjaLoader(os.path.join(os.path.dirname(__file__), 'templates/'),
+        autoescape=True, extensions=['jinja2.ext.autoescape']),
 )
 
 if __name__ == "__main__":
