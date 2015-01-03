@@ -28,6 +28,8 @@ class WeixinHandler(tornado.web.RequestHandler):
             client = tornado.httpclient.AsyncHTTPClient()
             response = yield client.fetch(url)
             if response.code == 200:
+                mc = self.application.mc
+                cache = mc.get(url)
                 entrys = []
                 content = response.body.decode('utf-8')
                 content = content[content.find('{'):content.rfind('}')+1]
@@ -44,27 +46,35 @@ class WeixinHandler(tornado.web.RequestHandler):
                     entry['url'] = url_pattern.findall(e)[0]
                     entry['created'] = rssdate(float(created_pattern.findall(e)[0]))
                     entrys.append(entry)
-                responses = yield [client.fetch(x['url']) for x in entrys]
-                for i, response in enumerate(responses):
-                    if response.code == 200:
-                        root = lxml.html.fromstring(response.body.decode('utf-8'))
-                        cover = root.xpath('//div[@class="rich_media_thumb"]/script')
-                        coverimg = None
-                        if cover:
-                            pic = re.findall(r'var cover = "(http://.+)";', cover[0].text)
-                            if pic:
-                                coverimg = pic[0]
-                        content = root.xpath('//div[@id="js_content"]')[0]
-                        for img in content.xpath('.//img'):
-                            imgattr = img.attrib
-                            imgattr['src'] = imgattr['data-src']
-                        if coverimg:
-                            coverelement = lxml.etree.fromstring('<img src="%s" />' % coverimg)
-                            content.insert(0, coverelement)
-                        entrys[i]['content'] = lxml.html.tostring(content, encoding='unicode')
-                    else:
-                        del entrys[i]
-                        continue
+                if cache:
+                    for entry in entrys:
+                        if entry['url'] in cache:
+                            entry['content'] = cache[entry['url']]
+                no_content = [ e for e in entrys if not 'content' in e ]
+                if no_content:
+                    responses = yield [client.fetch(x['url']) for x in no_content]
+                    for i, response in enumerate(responses):
+                        if response.code == 200:
+                            root = lxml.html.fromstring(response.body.decode('utf-8'))
+                            cover = root.xpath('//div[@class="rich_media_thumb"]/script')
+                            coverimg = None
+                            if cover:
+                                pic = re.findall(r'var cover = "(http://.+)";', cover[0].text)
+                                if pic:
+                                    coverimg = pic[0]
+                            content = root.xpath('//div[@id="js_content"]')[0]
+                            for img in content.xpath('.//img'):
+                                imgattr = img.attrib
+                                imgattr['src'] = imgattr['data-src']
+                            if coverimg:
+                                coverelement = lxml.etree.Element('img')
+                                coverelement.set('src', coverimg)
+                                content.insert(0, coverelement)
+                                no_content[i]['content'] = lxml.html.tostring(content, encoding='unicode')
+                        else:
+                            entrys.remove(no_content[i])
+                            continue
+                    mc.set(url, dict([ (e['url'], e['content']) for e in entrys ]), 604800)
                 self.set_header("Content-Type", "application/xml; charset=UTF-8")
                 self.render("weixin.xml", url=url.replace('gzhjs', 'gzh'), title=title, entrys=entrys)
             else:

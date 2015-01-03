@@ -21,15 +21,25 @@ class ZhihuHandler(tornado.web.RequestHandler):
         if response.code == 200:
             news = json.loads(response.body.decode('utf-8'))
             entrys = news['news']
-            responses = yield [client.fetch(x['url'], headers=headers) for x in entrys]
-            for i, response in enumerate(responses):
-                if response.code == 200:
-                    entry = json.loads(response.body.decode('utf-8'))
-                    entrys[i]['body'] = entry['body']
-                    entrys[i]['url'] = entry['share_url']
-                else:
-                    del entrys[i]
-                    continue
+            mc = self.application.mc
+            cache = mc.get('zhihu')
+            if cache:
+                for e in entrys:
+                    if e['url'] in cache:
+                        e['body'] = cache[e['url']]['body']
+                        e['share_url'] = cache[e['url']]['share_url']
+            no_content = [ e for e in entrys if not 'body' in e ]
+            if no_content:
+                responses = yield [client.fetch(x['url'], headers=headers) for x in no_content]
+                for i, response in enumerate(responses):
+                    if response.code == 200:
+                        entry = json.loads(response.body.decode('utf-8'))
+                        no_content[i]['body'] = entry['body']
+                        no_content[i]['share_url'] = entry['share_url']
+                    else:
+                        entrys.remove(no_content[i])
+                        continue
+                mc.set('zhihu', dict([ (e['url'], e) for e in entrys ]), 604800)
             self.set_header("Content-Type", "application/xml; charset=UTF-8")
             self.render("zhihu.xml", entrys=entrys)
         else:

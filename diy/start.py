@@ -1,9 +1,17 @@
 import os
 import tornado.ioloop
 import tornado.web
+import memcache
 
 from jinja2_tornado import JinjaLoader
 from urls import urls
+
+LOCAL_IP = os.environ['OPENSHIFT_DIY_IP']
+
+class Application(tornado.web.Application):
+    def __init__(self, **kwargs):
+        self.mc = memcache.Client(['%s:15211' % LOCAL_IP])
+        tornado.web.Application.__init__(self, **kwargs)
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
@@ -11,7 +19,7 @@ class MainHandler(tornado.web.RequestHandler):
 
 urls.append((r"/", MainHandler))
 
-application = tornado.web.Application(
+application = Application(
     handlers=urls,
     static_path=os.path.join(os.path.dirname(__file__), "static"),
     template_loader=JinjaLoader(os.path.join(os.path.dirname(__file__), 'templates/'),
