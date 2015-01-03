@@ -74,7 +74,7 @@ class WeixinHandler(tornado.web.RequestHandler):
                         else:
                             entrys.remove(no_content[i])
                             continue
-                    mc.set(url, dict([ (e['url'], e['content']) for e in entrys ]), 604800)
+                    mc.set(url, dict([ (e['url'], e['content']) for e in entrys if 'content' in e ]), 604800)
                 self.set_header("Content-Type", "application/xml; charset=UTF-8")
                 self.render("weixin.xml", url=url.replace('gzhjs', 'gzh'), title=title, entrys=entrys)
             else:

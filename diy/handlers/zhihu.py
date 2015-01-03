@@ -26,8 +26,8 @@ class ZhihuHandler(tornado.web.RequestHandler):
             if cache:
                 for e in entrys:
                     if e['url'] in cache:
-                        e['body'] = cache[e['url']]['body']
-                        e['share_url'] = cache[e['url']]['share_url']
+                        e['body'] = cache[e['url']][1]
+                        e['share_url'] = cache[e['url']][0]
             no_content = [ e for e in entrys if not 'body' in e ]
             if no_content:
                 responses = yield [client.fetch(x['url'], headers=headers) for x in no_content]
@@ -39,7 +39,7 @@ class ZhihuHandler(tornado.web.RequestHandler):
                     else:
                         entrys.remove(no_content[i])
                         continue
-                mc.set('zhihu', dict([ (e['url'], e) for e in entrys ]), 604800)
+                mc.set('zhihu', dict([ (e['url'], (e['share_url'], e['body'])) for e in entrys if 'body' in e ]), 604800)
             self.set_header("Content-Type", "application/xml; charset=UTF-8")
             self.render("zhihu.xml", entrys=entrys)
         else:
