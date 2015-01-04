@@ -19,10 +19,10 @@ Openshift安装memcached参考
 
 启动memcached  
 $OPENSHIFT_DATA_DIR/bin/memcached -l $OPENSHIFT_DIY_IP -p 15211 -d  
-获取pid用语停止服务  
+获取pid用于停止服务  
 ps -ef|grep memcached  
 
 还需要安装  
-OPENSHIFT_DATA_DIR/bin/pip install python-memcached
+$OPENSHIFT_DATA_DIR/bin/pip install python-memcached
 
 写这个APP是为了学习tornado异步请求，tornado没有用多线程实现并发，而是用事件循环来处理，所以这里主要用到了异步http client，同时fetch多个url也不会太慢

@@ -11,7 +11,7 @@
     {% for entry in entrys %}
     <entry>
         <title type="html"><![CDATA[{{ entry['title'] }}]]></title>
-        <link href="{{entry['url']}}"/>
+        <link href="{{entry['share_url']}}"/>
         <id>{{entry['id']}}</id>
         {% autoescape false %}
         <content type="html"><![CDATA[ {{entry['body']}} ]]></content>
