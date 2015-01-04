@@ -6,11 +6,11 @@ import memcache
 from jinja2_tornado import JinjaLoader
 from urls import urls
 
-LOCAL_IP = os.environ['OPENSHIFT_DIY_IP']
+IP = os.environ['OPENSHIFT_DIY_IP']
 
 class Application(tornado.web.Application):
     def __init__(self, **kwargs):
-        self.mc = memcache.Client(['%s:15211' % LOCAL_IP])
+        self.mc = memcache.Client(['%s:15211' % IP])
         tornado.web.Application.__init__(self, **kwargs)
 
 class MainHandler(tornado.web.RequestHandler):
@@ -27,7 +27,6 @@ application = Application(
 )
 
 if __name__ == "__main__":
-    ip = os.environ['OPENSHIFT_DIY_IP']
     port = int(os.environ['OPENSHIFT_DIY_PORT'])
-    application.listen(port, ip)
+    application.listen(port, IP)
     tornado.ioloop.IOLoop.instance().start()
