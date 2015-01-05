@@ -70,7 +70,7 @@ class WeixinHandler(tornado.web.RequestHandler):
                                 coverelement = lxml.etree.Element('img')
                                 coverelement.set('src', coverimg)
                                 content.insert(0, coverelement)
-                                no_content[i]['content'] = lxml.html.tostring(content, encoding='unicode')
+                            no_content[i]['content'] = lxml.html.tostring(content, encoding='unicode')
                         else:
                             entrys.remove(no_content[i])
                             continue
