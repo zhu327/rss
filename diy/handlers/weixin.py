@@ -62,7 +62,11 @@ class WeixinHandler(tornado.web.RequestHandler):
                                 pic = re.findall(r'var cover = "(http://.+)";', cover[0].text)
                                 if pic:
                                     coverimg = pic[0]
-                            content = root.xpath('//div[@id="js_content"]')[0]
+                            try:
+                                content = root.xpath('//div[@id="js_content"]')[0]
+                            except IndexError:
+                                entrys.remove(no_content[i])
+                                continue
                             for img in content.xpath('.//img'):
                                 imgattr = img.attrib
                                 imgattr['src'] = imgattr['data-src']
