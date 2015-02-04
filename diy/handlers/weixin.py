@@ -25,8 +25,10 @@ class WeixinHandler(tornado.web.RequestHandler):
         openid = self.get_argument('openid', None)
         if openid and len(openid) == 28:
             url = WINXIN_URL + urllib.urlencode({"openid": openid})
+            http_header = {'Cookie': 'SUV=000E779B777AB5EA54C5092D7B71E239; ABTEST=8|1422964017|v1; SNUID=F490CDC8B8BCB795197AC802B9F2B652; IPLOC=CN4403; SUID=4D2874712708930A0000000054D0B531; SUID=4D2874712524920A0000000054D0B531; weixinIndexVisited=1; wapsogou_qq_nickname='}
+            http_request = tornado.httpclient.HTTPRequest(url=url, headers=http_header)
             client = tornado.httpclient.AsyncHTTPClient()
-            response = yield client.fetch(url)
+            response = yield client.fetch(http_request)
             if response.code == 200:
                 mc = self.application.mc
                 cache = mc.get(url)
