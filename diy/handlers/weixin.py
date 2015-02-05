@@ -4,13 +4,16 @@ import tornado.web
 import tornado.gen
 import tornado.httpclient
 
-import urllib, json, datetime, re
+import urllib, json, datetime, re, random, time
 import lxml.html
 
 from dateutil import tz
 from public import LocalTimezone
 
 WINXIN_URL = 'http://weixin.sogou.com/gzhjs?'
+
+def getSUV():
+    return '='.join(['SUV', str(int(time.time()*1000000) + random.randint(0, 1000))])
 
 def rssdate(date):
     utc = datetime.datetime.utcfromtimestamp(date)
@@ -24,13 +27,25 @@ class WeixinHandler(tornado.web.RequestHandler):
     def get(self):
         openid = self.get_argument('openid', None)
         if openid and len(openid) == 28:
+            mc = self.application.mc
             url = WINXIN_URL + urllib.urlencode({"openid": openid})
-            http_header = {'Cookie': 'SUV=000E779B777AB5EA54C5092D7B71E239; ABTEST=8|1422964017|v1; SNUID=F490CDC8B8BCB795197AC802B9F2B652; IPLOC=CN4403; SUID=4D2874712708930A0000000054D0B531; SUID=4D2874712524920A0000000054D0B531; weixinIndexVisited=1; wapsogou_qq_nickname='}
-            http_request = tornado.httpclient.HTTPRequest(url=url, headers=http_header)
             client = tornado.httpclient.AsyncHTTPClient()
+
+            # 获取SNUID
+            cookie_request = tornado.httpclient.HTTPRequest(url=url.replace('gzhjs', 'gzh'), method='HEAD')
+            cookie = yield client.fetch(cookie_request)
+            m = re.findall(r'(SNUID=\S+?);', cookie.headers['set-cookie'])
+            if m:
+                SNUID = m[0]
+                headers = {'Cookie:': '; '.join([getSUV(), SNUID])}
+                mc.set('cookie', headers)
+            else:
+                headers = mc.get('cookie')
+
+            # 通过SUID，SUV获取接口数据
+            http_request = tornado.httpclient.HTTPRequest(url=url, headers=headers)
             response = yield client.fetch(http_request)
             if response.code == 200:
-                mc = self.application.mc
                 cache = mc.get(url)
                 entrys = []
                 content = response.body.decode('utf-8')
