@@ -31,16 +31,7 @@ class WeixinHandler(tornado.web.RequestHandler):
             url = WINXIN_URL + urllib.urlencode({"openid": openid})
             client = tornado.httpclient.AsyncHTTPClient()
 
-            # 获取SNUID
-            cookie_request = tornado.httpclient.HTTPRequest(url=url.replace('gzhjs', 'gzh'), method='HEAD')
-            cookie = yield client.fetch(cookie_request)
-            m = re.findall(r'(SNUID=\S+?);', cookie.headers['set-cookie'])
-            if m:
-                SNUID = m[0]
-                headers = {'Cookie:': '; '.join([getSUV(), SNUID])}
-                mc.set('cookie', headers)
-            else:
-                headers = mc.get('cookie')
+            headers = mc.get('cookie') # 从缓存中获取cookie
 
             # 通过SUID，SUV获取接口数据
             http_request = tornado.httpclient.HTTPRequest(url=url, headers=headers)
@@ -50,6 +41,19 @@ class WeixinHandler(tornado.web.RequestHandler):
                 entrys = []
                 content = response.body.decode('utf-8')
                 content = content[content.find('{'):content.rfind('}')+1]
+
+                # cookie实效，尝试重新获取cookie
+                if not content:
+                    # 获取SNUID
+                    cookie_request = tornado.httpclient.HTTPRequest(url=url.replace('gzhjs', 'gzh'), method='HEAD')
+                    cookie = yield client.fetch(cookie_request)
+                    SUID = re.findall(r'(SUID=\S+?);', cookie.headers['set-cookie'])[0]
+                    m = re.findall(r'(SNUID=\S+?);', cookie.headers['set-cookie'])
+                    if m:
+                        SNUID = m[0]
+                        headers = {'Cookie:': '; '.join([SUID, getSUV(), SNUID])}
+                        mc.set('cookie', headers)
+
                 content = json.loads(content)
                 title = None
                 title_pattern = re.compile(ur'<title><!\[CDATA\[(.+?)\]\]></title>')
