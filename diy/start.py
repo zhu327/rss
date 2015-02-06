@@ -2,6 +2,9 @@ import os
 import tornado.ioloop
 import tornado.web
 import memcache
+import sys
+reload( sys )
+sys.setdefaultencoding('utf-8')
 
 from jinja2_tornado import JinjaLoader
 from urls import urls
