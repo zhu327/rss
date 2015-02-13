@@ -8,6 +8,7 @@ sys.setdefaultencoding('utf-8')
 
 from jinja2_tornado import JinjaLoader
 from urls import urls
+from task import get_cookies
 
 IP = os.environ['OPENSHIFT_DIY_IP']
 
@@ -16,11 +17,6 @@ class Application(tornado.web.Application):
         self.mc = memcache.Client(['%s:15211' % IP])
         tornado.web.Application.__init__(self, **kwargs)
 
-class MainHandler(tornado.web.RequestHandler):
-    def get(self):
-        self.render('index.html')
-
-urls.append((r"/", MainHandler))
 
 application = Application(
     handlers=urls,
@@ -32,4 +28,5 @@ application = Application(
 if __name__ == "__main__":
     port = int(os.environ['OPENSHIFT_DIY_PORT'])
     application.listen(port, IP)
+    tornado.ioloop.PeriodicCallback(get_cookies, 6*60*60*1000).start()
     tornado.ioloop.IOLoop.instance().start()
