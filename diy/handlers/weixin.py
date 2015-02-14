@@ -77,7 +77,10 @@ class WeixinHandler(tornado.web.RequestHandler):
                                 continue
                             for img in content.xpath('.//img'):
                                 imgattr = img.attrib
-                                imgattr['src'] = imgattr['data-src']
+                                try:
+                                    imgattr['src'] = imgattr['data-src']
+                                except KeyError:
+                                    pass
                             if coverimg:
                                 coverelement = lxml.etree.Element('img')
                                 coverelement.set('src', coverimg)
