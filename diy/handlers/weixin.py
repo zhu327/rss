@@ -64,7 +64,7 @@ class WeixinHandler(tornado.web.RequestHandler):
                     for i, response in enumerate(responses):
                         if response.code == 200:
                             root = lxml.html.fromstring(response.body.decode('utf-8'))
-                            cover = root.xpath('//div[@class="rich_media_thumb"]/script')
+                            cover = root.xpath('//*[@id="media"]/script')
                             coverimg = None
                             if cover:
                                 pic = re.findall(r'var cover = "(http://.+)";', cover[0].text)
