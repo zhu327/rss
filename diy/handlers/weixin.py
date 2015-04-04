@@ -10,7 +10,7 @@ import lxml.html
 from dateutil import tz
 from public import LocalTimezone
 
-WINXIN_URL = 'http://weixin.sogou.com/gzhjs?'
+WINXIN_URL = 'http://weixin.sogou.com/gzhjs?cb=sogou.weixin.gzhcb&openid=%s&page=1&t=%s'
 
 
 def rssdate(date):
@@ -26,7 +26,7 @@ class WeixinHandler(tornado.web.RequestHandler):
         openid = self.get_argument('openid', None)
         if openid and len(openid) == 28:
             mc = self.application.mc
-            url = WINXIN_URL + urllib.urlencode({"openid": openid})
+            url = WINXIN_URL % (openid, int(time.time()*1000))
             client = tornado.httpclient.AsyncHTTPClient()
 
             cookies = mc.get('cookie') # 从缓存中获取cookie

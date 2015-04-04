@@ -21,11 +21,10 @@ def get_cookies():
         # 获取SNUID
         cookie_request = tornado.httpclient.HTTPRequest(url=url, method='HEAD')
         cookie = yield client.fetch(cookie_request)
-        SUID = re.findall(r'(SUID=\S+?);', cookie.headers['set-cookie'])[0]
-        m = re.findall(r'(SNUID=\S+?);', cookie.headers['set-cookie'])
-        if m:
-            SNUID = m[0]
-            headers = {'Cookie:': '; '.join([SUID, getSUV(), SNUID])}
+        l = re.findall(r'(ABTEST=\S+?|SNUID=\S+?|IPLOC=\S+?|SUID=\S+?|black_passportid=\S+?);', cookie.headers['set-cookie'])
+        if len(l) == 5:
+            l.append(getSUV())
+            headers = {'Cookie': '; '.join(l)}
             cookies.append(headers)
 
     mc = memcache.Client(['%s:15211' % IP])
