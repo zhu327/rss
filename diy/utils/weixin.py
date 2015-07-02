@@ -21,14 +21,7 @@ def process_cookie(cookie):
     return {'Cookie': '; '.join(l)}
 
 
-def process_title(html):
-    root = lxml.html.fromstring(html)
-    title = root.xpath('//*[@id="weixinname"]/text()')[0]
-    description = root.xpath('//*[@id="sogou_vr__box_0"]/div[2]/div/span[2]/text()')[0]
-    return title, description
-
-
-def process_eqs(html):
+def process_key(html):
     pattern = (
         r'SogouEncrypt.setKv\("(\w+)","(\d)"\)'
         r'.*?'
@@ -37,9 +30,12 @@ def process_eqs(html):
     m = re.findall(pattern, html, re.S)
     key, level, secret, setting = m[0]
 
-    eqs = _cipher_eqs(key, secret, setting)
+    return key, level, setting
 
-    return eqs, level
+
+def process_eqs(key, secret, setting):
+    eqs = _cipher_eqs(key, secret, setting)
+    return eqs
 
 
 def process_jsonp(r):

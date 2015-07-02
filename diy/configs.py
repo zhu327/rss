@@ -6,7 +6,8 @@ WEIBO_LINK = 'http://weibo.com/u/{uid}'
 ZHIHU_URL = 'http://news.at.zhihu.com/api/1.2/news/latest'
 ZHIHU_HEAD = {'User-Agent':"ZhihuNotMoe/2333",}
 
-SOGOU_URL = 'http://weixin.sogou.com/gzh?openid={id}'
+WEIXIN_KEY = 'http://weixin.sogou.com/gzh?openid={id}'
+WEIXIN_COOKIE = 'http://weixin.sogou.com/weixin?query={q}'
 WEIXIN_URL = 'http://weixin.sogou.com/gzhjs?cb=sogou.weixin.gzhcb&openid={id}&eqs={eqs}&ekv={ekv}&page=1&t={t}'
 
 ZHIHU_EXPIRES = 3*60*60 # 知乎日报缓存3小时

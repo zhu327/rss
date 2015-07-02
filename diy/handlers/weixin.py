@@ -1,13 +1,13 @@
 # coding:utf-8
 
-import time
+import time, random
 import tornado.web
 import tornado.gen
 import tornado.httpclient
 
 from base import WeixinBaseHandler
-from utils.weixin import process_cookie, process_title, process_eqs, process_jsonp, process_content
-from configs import SOGOU_URL, WEIXIN_URL
+from utils.weixin import process_eqs, process_jsonp, process_content
+from configs import WEIXIN_KEY, WEIXIN_URL
 
 
 class WeixinHandler(WeixinBaseHandler):
@@ -16,20 +16,15 @@ class WeixinHandler(WeixinBaseHandler):
     def get(self):
         client = tornado.httpclient.AsyncHTTPClient()
         id = self.key
-        link = SOGOU_URL.format(id=id)
-        
-        # 访问搜狗的公众号页面,获取标题,构造api url
-        response = yield client.fetch(link)
-        
-        if not response.code == 200:
-            self.redirect("/")
+        link = WEIXIN_KEY.format(id=id)
 
-        head = process_cookie(response.headers['set-cookie']) # 生成访问api需要的cookie
-        html = response.body.decode('utf-8')
-        eqs, ekv = process_eqs(html) # 生成构造api url的加密信息
-        title, description = process_title(html)
+        cookies = self.mc.get('cookie')
+        head = random.choice(cookies)
 
-        url = WEIXIN_URL.format(id=id, eqs=eqs, ekv=ekv, t=int(time.time()*1000)) # 生成api url
+        key = self.mc.get('key')
+        eqs = process_eqs(key[0], id, key[2])
+        
+        url = WEIXIN_URL.format(id=id, eqs=eqs, ekv=key[1], t=int(time.time()*1000)) # 生成api url
 
         # 访问api url,获取公众号文章列表
         request = tornado.httpclient.HTTPRequest(url=url, headers=head)
@@ -55,6 +50,7 @@ class WeixinHandler(WeixinBaseHandler):
                 items.pop(i)
 
         pubdate = items[0]['created']
+        title = description = items[0]['author']
 
         self.set_header("Content-Type", "application/rss+xml; charset=UTF-8")
         self.render("rss.xml", title=title, description=description, items=items, pubdate=pubdate, link=link)
