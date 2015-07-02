@@ -1,4 +1,4 @@
-#_*_ coding:utf-8 _*_
+# coding:utf-8
 
 from handlers import weibo, weixin, zhihu, index
 

@@ -1,98 +1,60 @@
-#_*_ coding:utf-8 _*_
+# coding:utf-8
 
+import time
 import tornado.web
 import tornado.gen
 import tornado.httpclient
 
-import urllib, json, datetime, re, random, time
-import lxml.html
-
-from dateutil import tz
-from public import LocalTimezone
-
-WINXIN_URL = 'http://weixin.sogou.com/gzhjs?cb=sogou.weixin.gzhcb&openid=%s&page=1&t=%s'
+from base import WeixinBaseHandler
+from utils.weixin import process_cookie, process_title, process_eqs, process_jsonp, process_content
+from configs import SOGOU_URL, WEIXIN_URL
 
 
-def rssdate(date):
-    utc = datetime.datetime.utcfromtimestamp(date)
-    utc = utc.replace(tzinfo=tz.gettz('UTC'))
-    local = utc.astimezone(LocalTimezone())
-    return local.strftime("%a, %d %b %Y %H:%M:%S %z")
-
-class WeixinHandler(tornado.web.RequestHandler):
+class WeixinHandler(WeixinBaseHandler):
     @tornado.web.asynchronous
     @tornado.gen.coroutine
     def get(self):
-        openid = self.get_argument('openid', None)
-        if openid and len(openid) == 28:
-            mc = self.application.mc
-            url = WINXIN_URL % (openid, int(time.time()*1000))
-            client = tornado.httpclient.AsyncHTTPClient()
-
-            cookies = mc.get('cookie') # 从缓存中获取cookie
-            headers = random.choice(cookies)
-
-            # 通过SUID，SUV获取接口数据
-            http_request = tornado.httpclient.HTTPRequest(url=url, headers=headers)
-            response = yield client.fetch(http_request)
-            if response.code == 200:
-                cache = mc.get(url)
-                entrys = []
-                content = response.body.decode('utf-8')
-                content = content[content.find('{'):content.rfind('}')+1]
-
-                content = json.loads(content)
-                title = None
-                title_pattern = re.compile(ur'<title><!\[CDATA\[(.+?)\]\]></title>')
-                url_pattern = re.compile(ur'<url><!\[CDATA\[(.+?)\]\]></url>')
-                created_pattern = re.compile(ur'<lastModified>(\d+)</lastModified>')
-                for e in content['items']:
-                    entry = {}
-                    if not title:
-                        title = re.findall(ur'<sourcename><!\[CDATA\[(.+?)\]\]></sourcename>', e)[0]
-                    entry['title'] = title_pattern.findall(e)[0]
-                    entry['url'] = url_pattern.findall(e)[0]
-                    entry['created'] = rssdate(float(created_pattern.findall(e)[0]))
-                    entrys.append(entry)
-                if cache:
-                    for entry in entrys:
-                        if entry['url'] in cache:
-                            entry['content'] = cache[entry['url']]
-                no_content = [ e for e in entrys if not 'content' in e ]
-                if no_content:
-                    responses = yield [client.fetch(x['url']) for x in no_content]
-                    for i, response in enumerate(responses):
-                        if response.code == 200:
-                            root = lxml.html.fromstring(response.body.decode('utf-8'))
-                            cover = root.xpath('//*[@id="media"]/script')
-                            coverimg = None
-                            if cover:
-                                pic = re.findall(r'var cover = "(http://.+)";', cover[0].text)
-                                if pic:
-                                    coverimg = pic[0]
-                            try:
-                                content = root.xpath('//div[@id="js_content"]')[0]
-                            except IndexError:
-                                entrys.remove(no_content[i])
-                                continue
-                            for img in content.xpath('.//img'):
-                                imgattr = img.attrib
-                                try:
-                                    imgattr['src'] = imgattr['data-src']
-                                except KeyError:
-                                    pass
-                            if coverimg:
-                                coverelement = lxml.etree.Element('img')
-                                coverelement.set('src', coverimg)
-                                content.insert(0, coverelement)
-                            no_content[i]['content'] = lxml.html.tostring(content, encoding='unicode')
-                        else:
-                            entrys.remove(no_content[i])
-                            continue
-                    mc.set(url, dict([ (e['url'], e['content']) for e in entrys if 'content' in e ]), 604800)
-                self.set_header("Content-Type", "application/xml; charset=UTF-8")
-                self.render("weixin.xml", url=url.replace('gzhjs', 'gzh'), title=title, entrys=entrys)
-            else:
-                raise tornado.web.HTTPError(response.code)
-        else:
+        client = tornado.httpclient.AsyncHTTPClient()
+        id = self.key
+        link = SOGOU_URL.format(id=id)
+        
+        # 访问搜狗的公众号页面,获取标题,构造api url
+        response = yield client.fetch(link)
+        
+        if not response.code == 200:
             self.redirect("/")
+
+        head = process_cookie(response.headers['set-cookie']) # 生成访问api需要的cookie
+        html = response.body.decode('utf-8')
+        eqs, ekv = process_eqs(html) # 生成构造api url的加密信息
+        title, description = process_title(html)
+
+        url = WEIXIN_URL.format(id=id, eqs=eqs, ekv=ekv, t=int(time.time()*1000)) # 生成api url
+
+        # 访问api url,获取公众号文章列表
+        request = tornado.httpclient.HTTPRequest(url=url, headers=head)
+        response = yield client.fetch(request)
+
+        if not response.code == 200:
+            self.redirect("/")
+
+        jsonp = response.body.decode('utf-8')
+        items = process_jsonp(jsonp) # 解析文章列表
+
+        # 爬取每篇文章的内容
+        responses = yield [client.fetch(i['link']) for i in items]
+        for i, response in enumerate(responses):
+            if response.code == 200:
+                html = response.body.decode('utf-8')
+                content = process_content(html)
+                if content:
+                    items[i]['content'] = content
+                else:
+                    items.pop(i)
+            else:
+                items.pop(i)
+
+        pubdate = items[0]['created']
+
+        self.set_header("Content-Type", "application/rss+xml; charset=UTF-8")
+        self.render("rss.xml", title=title, description=description, items=items, pubdate=pubdate, link=link)

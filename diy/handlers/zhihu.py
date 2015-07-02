@@ -1,46 +1,51 @@
-#_*_ coding:utf-8 _*_
+# coding:utf-8
+
+import json
 
 import tornado.web
 import tornado.gen
 import tornado.httpclient
+import lxml.html
 
-import json
+from base import ZhihuBaseHandler
+from utils.filters import zhihudate
+from configs import ZHIHU_URL, ZHIHU_HEAD
 
-ZHIHU_URL = 'http://news.at.zhihu.com/api/1.2/news/latest'
 
-headers = {
-    'User-Agent':"ZhihuNotMoe/2333",
-}
-
-class ZhihuHandler(tornado.web.RequestHandler):
+class ZhihuHandler(ZhihuBaseHandler):
     @tornado.web.asynchronous
     @tornado.gen.coroutine
     def get(self):
         client = tornado.httpclient.AsyncHTTPClient()
-        response = yield client.fetch(ZHIHU_URL, headers=headers)
+        response = yield client.fetch(ZHIHU_URL, headers=ZHIHU_HEAD)
         if response.code == 200:
-            news = json.loads(response.body.decode('utf-8'))
-            entrys = news['news']
-            mc = self.application.mc
-            cache = mc.get('zhihu')
-            if cache:
-                for e in entrys:
-                    if e['url'] in cache:
-                        e['body'] = cache[e['url']][1]
-                        e['share_url'] = cache[e['url']][0]
-            no_content = [ e for e in entrys if not 'body' in e ]
-            if no_content:
-                responses = yield [client.fetch(x['url'], headers=headers) for x in no_content]
-                for i, response in enumerate(responses):
-                    if response.code == 200:
-                        entry = json.loads(response.body.decode('utf-8'))
-                        no_content[i]['body'] = entry['body']
-                        no_content[i]['share_url'] = entry['share_url']
-                    else:
-                        entrys.remove(no_content[i])
-                        continue
-                mc.set('zhihu', dict([ (e['url'], (e['share_url'], e['body'])) for e in entrys if 'body' in e ]), 604800)
-            self.set_header("Content-Type", "application/xml; charset=UTF-8")
-            self.render("zhihu.xml", entrys=entrys)
+            d = json.loads(response.body.decode('utf-8'))
+            date = d['date']
+            news = d['news']
+            items = []
+            for i in news:
+                item = {}
+                item['title'] = i['title']
+                item['link'] = i['share_url']
+                item['created'] = zhihudate(date, i['ga_prefix'])
+                item['guid'] = i['id']
+                items.append(item)
+
+            responses = yield [client.fetch(i['url'], headers=ZHIHU_HEAD) for i in news]
+            for i, response in enumerate(responses):
+                if response.code == 200:
+                    entry = json.loads(response.body.decode('utf-8'))
+                    items[i]['content'] = entry['body']
+                    root = lxml.html.fromstring(entry['body'])
+                    items[i]['author'] = root.xpath('//span[@class="author"]/text()')[0].rstrip(u'，')
+                else:
+                    items.remove(items[i])
+                    continue
+            title = u'知乎日报'
+            description = u'在中国,资讯类移动应用的人均阅读时长是 5 分钟,而在知乎日报,这个数字是 21。以独有的方式为你提供最高质、最深度、最有收获的阅读体验。'
+            pubdate = items[0]['created']
+            link = 'http://daily.zhihu.com/'
+            self.set_header("Content-Type", "application/rss+xml; charset=UTF-8")
+            self.render("rss.xml", title=title, description=description, items=items, pubdate=pubdate, link=link)
         else:
             raise tornado.web.HTTPError(response.code)

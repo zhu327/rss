@@ -7,7 +7,7 @@ demo:<https://diy-devz.rhcloud.com>
 RSS Factory 是用于生成 微博 微信公众号 知乎日报 RSS 的Web APP。  
 
 部署在Openshift diy tornado环境上，环境搭建参考:  
-<http://blog.ricoxie.com/2014/04/29/deploy-tornado-on-openshift-diy/>  
+<http://bozpy.sinaapp.com/blog/29>
 
 <del>另外还依赖BeautifulSoup</del>
 
@@ -30,3 +30,5 @@ $OPENSHIFT_DATA_DIR/bin/pip install python-memcached
 2015.02.05 搜狗微信公众号已启用反爬虫，我在代码中已添加针对反爬虫的措施，但是不保证一定有效，间歇性的500是不可避免的
 
 2015.02.14 更新了定时任务，每6个小时更新一次cookie，获取10个有效cookie，微信公众�号api随机使用可用cookie，基本解决搜狗反爬虫问题
+
+2015.07.02 重构了下代码,看起来更像一个标准的项目,再次尝试解决搜狗的反爬虫问题,通过缓存来减少对文章列表的请求数,依赖在requirements.txt中
