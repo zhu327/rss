@@ -1,6 +1,6 @@
 # coding:utf-8
 
-import time
+import time, urllib
 import tornado.web
 import tornado.gen
 import tornado.httpclient
@@ -29,7 +29,7 @@ class WeixinHandler(WeixinBaseHandler):
         eqs, ekv = process_eqs(html) # 生成构造api url的加密信息
         title, description = process_title(html)
 
-        url = WEIXIN_URL.format(id=id, eqs=eqs, ekv=ekv, t=int(time.time()*1000)) # 生成api url
+        url = WEIXIN_URL.format(id=id, eqs=urllib.quote(eqs), ekv=ekv, t=int(time.time()*1000)) # 生成api url
 
         # 访问api url,获取公众号文章列表
         request = tornado.httpclient.HTTPRequest(url=url, headers=head)
