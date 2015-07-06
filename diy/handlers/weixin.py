@@ -42,20 +42,13 @@ class WeixinHandler(WeixinBaseHandler):
 
         # 爬取每篇文章的内容
         responses = yield [client.fetch(i['link']) for i in items]
-        remove = []
         for i, response in enumerate(responses):
             if response.code == 200:
                 html = response.body.decode('utf-8')
                 content = process_content(html)
-                if content:
-                    items[i]['content'] = content
-                else:
-                    remove.append(i)
+                items[i]['content'] = content
             else:
-                remove.append(i)
-
-        for i in remove:
-            items.pop(i)
+                items[i]['content'] = ''
 
         pubdate = items[0]['created']
         title = description = items[0]['author']
