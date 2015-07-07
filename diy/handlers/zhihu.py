@@ -37,10 +37,14 @@ class ZhihuHandler(ZhihuBaseHandler):
                     entry = json.loads(response.body.decode('utf-8'))
                     items[i]['content'] = entry['body']
                     root = lxml.html.fromstring(entry['body'])
-                    items[i]['author'] = root.xpath('//span[@class="author"]/text()')[0].rstrip(u'，')
+                    try:
+                        items[i]['author'] = root.xpath('//span[@class="author"]/text()')[0].rstrip(u'，')
+                    except IndexError:
+                        items[i]['author'] = 'zhihu'
                 else:
-                    items.remove(items[i])
-                    continue
+                    items[i]['author'] = 'zhihu'
+                    items[i]['content'] = ''
+            
             title = u'知乎日报'
             description = u'在中国,资讯类移动应用的人均阅读时长是 5 分钟,而在知乎日报,这个数字是 21。以独有的方式为你提供最高质、最深度、最有收获的阅读体验。'
             pubdate = items[0]['created']

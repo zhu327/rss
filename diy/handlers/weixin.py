@@ -23,7 +23,7 @@ class WeixinHandler(WeixinBaseHandler):
 
         key = self.mc.get('key')
         eqs = process_eqs(key[0], id, key[2])
-        
+
         url = WEIXIN_URL.format(id=id, eqs=urllib.quote(eqs), ekv=key[1], t=int(time.time()*1000)) # 生成api url
 
         # 访问api url,获取公众号文章列表
@@ -36,8 +36,13 @@ class WeixinHandler(WeixinBaseHandler):
         jsonp = response.body.decode('utf-8')
         items = process_jsonp(jsonp) # 解析文章列表
 
+        if not items:
+            self.set_header("Content-Type", "application/rss+xml; charset=UTF-8")
+            self.render("rss.xml", title='', description='', items=items, pubdate='', link=link)
+
         # 爬取每篇文章的内容
         responses = yield [client.fetch(i['link']) for i in items]
+        remove = []
         for i, response in enumerate(responses):
             if response.code == 200:
                 html = response.body.decode('utf-8')
@@ -45,9 +50,12 @@ class WeixinHandler(WeixinBaseHandler):
                 if content:
                     items[i]['content'] = content
                 else:
-                    items.pop(i)
+                    remove.append(i)
             else:
-                items.pop(i)
+                remove.append(i)
+
+        for i in remove:
+            items.pop(i)
 
         pubdate = items[0]['created']
         title = description = items[0]['author']
