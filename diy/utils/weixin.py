@@ -58,7 +58,7 @@ _COVER_RE = re.compile(r'cover = "(http://.+)";')
 
 def process_content(html):
     root = lxml.html.fromstring(html)
-    
+
     # 抽取封面cover图片
     script = root.xpath('//*[@id="media"]/script/text()')
     cover = None
@@ -71,7 +71,7 @@ def process_content(html):
     try:
         content = root.xpath('//*[@id="js_content"]')[0]
     except IndexError:
-        return
+        return ''
 
     # 处理图片链接
     for img in content.xpath('.//img'):
@@ -85,7 +85,6 @@ def process_content(html):
         content.insert(0, coverelement)
 
     return lxml.html.tostring(content, encoding='unicode')
-        
 
 
 def _cipher_eqs(key, secret, setting='sogou'):
