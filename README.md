@@ -6,6 +6,9 @@ demo:<https://diy-devz.rhcloud.com> (demo不再提供微信公众号rss生成服
 
 RSS Factory 是用于生成 微博 微信公众号 知乎日报 RSS 的Web APP。  
 
+<https://hub.alauda.cn/repos/zhu327/rss>  
+提供Docker image用于一键构建你自己RSS服务。  
+
 部署在Openshift diy tornado环境上，环境搭建参考:  
 <http://bozpy.sinaapp.com/blog/29>
 
