@@ -37,7 +37,7 @@ class WeixinHandler(WeixinBaseHandler):
         items = process_jsonp(jsonp) # 解析文章列表
 
         if not items:
-            self.set_header("Content-Type", "application/rss+xml; charset=UTF-8")
+            self.set_header("Content-Type", "application/xml")
             self.render("rss.xml", title='', description='', items=items, pubdate='', link=link)
 
         # 爬取每篇文章的内容
@@ -54,5 +54,5 @@ class WeixinHandler(WeixinBaseHandler):
         pubdate = items[0]['created']
         title = description = items[0]['author']
 
-        self.set_header("Content-Type", "application/rss+xml; charset=UTF-8")
+        self.set_header("Content-Type", "application/xml")
         self.render("rss.xml", title=title, description=description, items=items, pubdate=pubdate, link=link)

@@ -103,7 +103,7 @@ def _cipher_eqs(key, secret, setting='sogou'):
 
     # function f
     if len(h) > 5:
-        n = h[:-5]
+        n = h[:5]
     else:
         n = h + (5 - len(h)) * 's'
 

@@ -1,23 +1,23 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8" ?>
 <rss version="2.0">
-  <channel>
-    <title>{{ title }}</title>
-    <link>{{ link }}</link>
-    <description>{{ description }}</description>
-    <language>zh-cn</language>
-    <pubDate>{{ pubdate }}</pubDate>
-    <lastBuildDate>{{ pubdate }}</lastBuildDate>
-    {% for item in items %}
-    <item>
-      <title><![CDATA[{{ item['title'] }}]]></title>
-      <link>{{ item['link'] }}</link>
-      <author>{{ item['author'] }}</author>
-      {% autoescape false %}
-      <description><![CDATA[{{ item['content'] }}]]></description>
-      {% endautoescape %}
-      <pubDate>{{ item['created'] }}</pubDate>
-      <guid>{{ item['guid'] }}</guid>
-    </item>
-    {% endfor %}
-  </channel>
+    <channel>
+        <title>{{ title }}</title>
+        <link>{{ link }}</link>
+        <description>{{ description }}</description>
+        <language>zh-cn</language>
+        <copyright>Copyright 2015, Timmy</copyright>
+        <pubDate>{{ pubdate }}</pubDate>
+        {% for item in items %}
+        <item>
+            <title><![CDATA[{{ item['title'] }}]]></title>
+            <link>{{ item['link'] }}</link>
+            <author>{{ item['author'] }}</author>
+            <pubDate>{{ item['created'] }}</pubDate>
+            {% autoescape false %}
+            <description><![CDATA[{{ item['content'] }}]]></description>
+            {% endautoescape %}
+            <guid>{{ item['guid'] }}</guid>
+        </item>
+        {% endfor %}
+    </channel>
 </rss>

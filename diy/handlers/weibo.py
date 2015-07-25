@@ -38,7 +38,7 @@ class WeiboHandler(tornado.web.RequestHandler):
                 items.append(item)
             pubdate = items[0]['created']
             link = WEIBO_LINK.format(uid=self.uid)
-            self.set_header("Content-Type", "application/rss+xml; charset=UTF-8")
+            self.set_header("Content-Type", "application/xml")
             self.render("rss.xml", title=title, description=title, items=items, pubdate=pubdate, link=link)
         else:
             raise tornado.web.HTTPError(response.code)

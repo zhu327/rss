@@ -13,12 +13,12 @@ import tornado.web
 
 from jinja2_tornado import JinjaLoader
 from urls import urls
-from task import get_cookies, get_key
+from task import get_cookies, get_key, mc
+
 
 IP = os.environ['OPENSHIFT_DIY_IP']
 PORT = int(os.environ['OPENSHIFT_DIY_PORT'])
 
-mc = memcache.Client(['%s:15211' % IP])
 
 class Application(tornado.web.Application):
     def __init__(self, **kwargs):
@@ -28,13 +28,15 @@ class Application(tornado.web.Application):
 
 application = Application(
     handlers=urls,
-    static_path=os.path.join(_basedir, "static"),
+    static_path=os.path.join(_basedir, 'static'),
     template_loader=JinjaLoader(os.path.join(_basedir, 'templates'),
         autoescape=True, extensions=['jinja2.ext.autoescape']),
 )
 
 if __name__ == "__main__":
     application.listen(PORT, IP)
+    tornado.ioloop.IOLoop.run_sync(get_key)
+    tornado.ioloop.IOLoop.run_sync(get_cookies)
     tornado.ioloop.PeriodicCallback(get_cookies, 24*60*60*1000).start()
     tornado.ioloop.PeriodicCallback(get_key, 15*60*60*1000).start()
     tornado.ioloop.IOLoop.instance().start()

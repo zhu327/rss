@@ -33,7 +33,7 @@
 
 <div class="gittip alert alert-info" style="padding: 20px;">
     <p>
-        知乎日报: <a href='https://diy-devz.rhcloud.com/zhihu' target='_blank'>https://diy-devz.rhcloud.com/zhihu</a>
+        知乎日报: <a href='https://{{ host }}/zhihu' target='_blank'>https://{{ host }}/zhihu</a>
     </p>
 </div>
 
@@ -73,11 +73,11 @@
                 $('.input-group').on('click', 'button', function() {
                     var input = $('input').val();
                     if (input.length == 10 && isDigit(input)) {
-                        var a = $("<a target='_blank' href='https://diy-devz.rhcloud.com/weibo?uid="+input+"'>https://diy-devz.rhcloud.com/weibo?uid="+input+"</a>");
+                        var a = $("<a target='_blank' href='https://{{ host }}/weibo?uid="+input+"'>https://{{ host }}/weibo?uid="+input+"</a>");
                         var p = $("<p>微博:<br/></p>");
                         p.append(a);
                     } else if (input.length == 28) {
-                        var a = $("<a target='_blank' href='https://diy-devz.rhcloud.com/gzh?openid="+input+"'>https://diy-devz.rhcloud.com/gzh?openid="+input+"</a>");
+                        var a = $("<a target='_blank' href='https://{{ host }}/gzh?openid="+input+"'>https://{{ host }}/gzh?openid="+input+"</a>");
                         var p = $("<p>微信公众号:<br/></p>");
                         p.append(a);
                     } else {

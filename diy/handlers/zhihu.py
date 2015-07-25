@@ -44,12 +44,12 @@ class ZhihuHandler(ZhihuBaseHandler):
                 else:
                     items[i]['author'] = 'zhihu'
                     items[i]['content'] = ''
-            
+
             title = u'知乎日报'
             description = u'在中国,资讯类移动应用的人均阅读时长是 5 分钟,而在知乎日报,这个数字是 21。以独有的方式为你提供最高质、最深度、最有收获的阅读体验。'
             pubdate = items[0]['created']
             link = 'http://daily.zhihu.com/'
-            self.set_header("Content-Type", "application/rss+xml; charset=UTF-8")
+            self.set_header("Content-Type", "application/xml")
             self.render("rss.xml", title=title, description=description, items=items, pubdate=pubdate, link=link)
         else:
             raise tornado.web.HTTPError(response.code)
