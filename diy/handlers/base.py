@@ -115,7 +115,7 @@ class ZhihuBaseHandler(BaseHandler):
         '''
         html = self.mc.get(self.key)
         if html:
-            self.set_header("Content-Type", "application/rss+xml; charset=UTF-8")
+            self.set_header("Content-Type", "application/xml")
             self.finish(html)
 
 
@@ -130,7 +130,7 @@ class WeixinBaseHandler(BaseHandler):
         if self.key and len(self.key) == 28:
             html = self.mc.get(self.key)
             if html:
-                self.set_header("Content-Type", "application/rss+xml; charset=UTF-8")
+                self.set_header("Content-Type", "application/xml")
                 self.finish(html)
         else:
             self.redirect("/")

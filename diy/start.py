@@ -7,7 +7,6 @@ if _basedir not in sys.path:
 reload( sys )
 sys.setdefaultencoding('utf-8')
 
-import memcache
 import tornado.ioloop
 import tornado.web
 
@@ -35,8 +34,8 @@ application = Application(
 
 if __name__ == "__main__":
     application.listen(PORT, IP)
-    tornado.ioloop.IOLoop.run_sync(get_key)
-    tornado.ioloop.IOLoop.run_sync(get_cookies)
+    tornado.ioloop.IOLoop().run_sync(get_key)
+    tornado.ioloop.IOLoop().run_sync(get_cookies)
     tornado.ioloop.PeriodicCallback(get_cookies, 24*60*60*1000).start()
     tornado.ioloop.PeriodicCallback(get_key, 15*60*60*1000).start()
     tornado.ioloop.IOLoop.instance().start()
